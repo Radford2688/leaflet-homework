@@ -1,36 +1,37 @@
-
 // store API endpoint as queryUr
 var queryUrl = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson";
 
 // get request to the query URL/
 d3.json(queryUrl).then(function (data) {
+  createFeatures(data.features);
+});
 
+function createFeatures(earthquakeData) {
+  
   // Define a function that we want to run once for each feature in the features array.
   // Give each feature a popup that describes the place and time of the earthquake.  
-  function bindpopuptomarker(feature, layer) {
-    layer.bindPopup(
-      "Earthquake magnitude: " + feature.properties.mag
-      + "<br>Earthquake Location:<br> " + feature.properties.place
-      + "<br>Depth: " + feature.geometry.coordinates[2]);
+  function onEachFeature(feature, layer) {
+    layer.bindPopup(`<h3>${feature.properties.place}</h3><hr><p>${new Date(feature.properties.time)}</p>`);
   }
-
+      
   // create function to show color for earthquake
-  function generatecolor(earthquakedepth) {
-    if (earthquakedepth > 90) {
-      return "#60397f"
-    }
-    if (earthquakedepth > 70) {
-      return "#734498"
-    }
-    if (earthquakedepth > 50) {
-      return "#864fb2"
-    }
-    if (earthquakedepth > 30) {
-      return "#9a5acb"
-    }
-    if (earthquakedepth > 10) {
-      return "#ad66e5"
-    }
+  function Changecolor (depth){
+    if (depth>9)
+    return "red"
+    else if (depth>7)
+    return "green"
+    else if (depth>6)
+    return" blue"
+    else if (depth>5)
+    return "pink"
+    else if (depth>4)
+    return "purple"
+    else if (depth>3)
+    return "orange"
+    else if (depth>2)
+    return "yellow"
+    else
+    return "grey"
 
   }
   // create the style
@@ -57,8 +58,8 @@ d3.json(queryUrl).then(function (data) {
   function generatemarker(feature, latlong) {
     return L.circleMarker(latlong)
   }
-  // geoJSON layer
-  // onEach
+  // Create a GeoJSON layer that contains the features array on the earthquakeData object.
+  // Run the onEachFeature function once for each piece of data in the array.
   var earthquakes = L.geoJSON(data.features, {
     onEachFeature: bindpopuptomarker,
     style: generateearthquakestyle,
@@ -71,7 +72,7 @@ d3.json(queryUrl).then(function (data) {
 
 function createMap(earthquakes) {
 
-  // base layers
+  // Create the base layers.
   var street = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
   })
@@ -91,7 +92,7 @@ function createMap(earthquakes) {
     "Earthquakes": earthquakes
   };
 
-  // create our map, giving it the streetmap and earthquakes layers to display on load
+  // Create map, giving it the streetmap and earthquakes layers to display on load.
   var myMap = L.map("map", {
     center: [
       0, 0
@@ -101,12 +102,14 @@ function createMap(earthquakes) {
   });
   earthquakes.addTo(myMap);
 
-  // Create a layer control.Pass it our baseMaps and overlayMaps.Add the layer control to the map.   
+  // Create a layer control.
+  // Pass it our baseMaps and overlayMaps.
+  // Add the layer control to the map. 
   L.control.layers(baseMaps, overlayMaps, {
     collapsed: false
   }).addTo(myMap);
 
-  //  create a legend and add it to the map
+  //  create legend
   var legend = L.control({ position: 'bottomright' });
 
   legend.onAdd = function () {
@@ -125,7 +128,6 @@ function createMap(earthquakes) {
     return div;
   };
 
-  // We add our legend to the map.
+  // Add legend to the map.
   legend.addTo(myMap);
-
 }
